@@ -1,0 +1,14 @@
+defaults:
+  retries: 3
+  backoff_base_ms: 500
+  cache_ttl:
+    direct: 5m
+    batch: 1h
+
+categories:
+  dev/smoke:
+    provider: anthropic
+    model: claude-haiku-5-5
+    effort: null
+    max_input_tokens: 2000
+    max_output_tokens: 64
