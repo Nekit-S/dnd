@@ -6,7 +6,9 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 class Settings(BaseSettings):
-    model_config = SettingsConfigDict(env_file=".env", env_prefix="AIDM_", extra="ignore")
+    model_config = SettingsConfigDict(
+        env_file=".env", env_prefix="AIDM_", extra="ignore", env_ignore_empty=True
+    )
 
     # Ключи провайдеров читаются под стандартными именами, без префикса
     anthropic_api_key: SecretStr | None = Field(None, validation_alias="ANTHROPIC_API_KEY")

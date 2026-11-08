@@ -37,3 +37,10 @@ def test_aidm_prefix(monkeypatch: pytest.MonkeyPatch) -> None:
     s = Settings(_env_file=None)
     assert s.campaigns_dir == Path("/x/campaigns")
     assert s.port == 9000
+
+
+def test_empty_env_values_use_defaults(tmp_path: Path) -> None:
+    env = tmp_path / ".env"
+    env.write_text("AIDM_PORT=\nAIDM_DEV_PAGE=\nAIDM_MONTHLY_LIMIT_USD=\n", encoding="utf-8")
+    s = Settings(_env_file=env)
+    assert (s.port, s.dev_page, s.monthly_limit_usd) == (8000, False, Decimal(100))
