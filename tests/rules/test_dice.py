@@ -33,8 +33,6 @@ def test_keep_highest_lowest() -> None:
     assert (r.rolls, sorted(r.kept), r.total) == ((1, 5, 3), [3, 5], 8)
     low = roll(parse("3d6kl1"), random.Random(1))
     assert low.total == min(low.rolls)
-        roll(parse("3d6"), random.Random(1)).rolls
-    )
 
 
 @st.composite
