@@ -68,6 +68,18 @@ def test_links_skip_hidden_ends(store: CampaignStore) -> None:
     assert PlayerView(store, "p2").links(town.id) == []
 
 
+def test_fact_follows_target_visibility_change(store: CampaignStore) -> None:
+    npc = store.put(rec(Visibility.ALL))
+    store.add_fact("SECRET", [npc.id], FactSource.GAME, None)
+    store.put(npc.model_copy(update={"visibility": Visibility.PLAYER, "player_id": "p1"}))
+    assert [f.data["text"] for f in PlayerView(store, "p1").list("fact")] == ["SECRET"]
+    assert PlayerView(store, "p2").list("fact") == []
+    assert PlayerView(store, None).list("fact") == []
+    store.put(npc.model_copy(update={"visibility": Visibility.PLAYER, "player_id": "p2"}))
+    assert PlayerView(store, "p1").list("fact") == []
+    assert len(PlayerView(store, "p2").list("fact")) == 1
+
+
 def test_view_has_no_writes_or_store() -> None:
     public = {n for n in dir(PlayerView) if not n.startswith("_")}
     assert public == {"get", "list", "links"}
@@ -102,6 +114,21 @@ def test_no_leaks(
             ids.append(
                 store.add_fact("f", [ids[t % len(ids)] for t in targets], FactSource.GAME, None).id
             )
+
+        # Смена видимости после появления фактов: факты должны её догнать
+        for (v, p), rid in zip(specs, ids, strict=False):
+            new = Visibility.PLAYER if v is Visibility.ALL else Visibility.ALL
+            try:
+                store.put(
+                    store.get(rid).model_copy(
+                        update={
+                            "visibility": new,
+                            "player_id": p if new is Visibility.PLAYER else None,
+                        }
+                    )
+                )
+            except VisibilityError:
+                pass
 
         for player in [None, "p1", "p2", "p3"]:
             view = PlayerView(store, player)

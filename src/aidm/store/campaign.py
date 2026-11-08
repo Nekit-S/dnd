@@ -1,4 +1,5 @@
 import json
+import re
 import sqlite3
 from collections.abc import Iterator, Sequence
 from contextlib import contextmanager
@@ -35,8 +36,20 @@ def row_to_record(row: sqlite3.Row) -> Record:
     )
 
 
+_ID = re.compile(r"[0-9a-f]{32}")
+
+
 def _now() -> str:
     return datetime.now(UTC).isoformat()
+
+
+def _fact_visibility(targets: Sequence[Record]) -> tuple[Visibility, str | None]:
+    players = {t.player_id for t in targets if t.visibility is Visibility.PLAYER}
+    if any(t.visibility is Visibility.DM for t in targets) or len(players) > 1:
+        return Visibility.DM, None
+    if players:
+        return Visibility.PLAYER, players.pop()
+    return Visibility.ALL, None
 
 
 class CampaignStore:
@@ -46,6 +59,8 @@ class CampaignStore:
 
     @staticmethod
     def _path(settings: Settings, campaign_id: str) -> Path:
+        if not _ID.fullmatch(campaign_id):
+            raise ValueError(f"bad campaign id: {campaign_id!r}")
         return settings.campaigns_dir / f"{campaign_id}.sqlite"
 
     @classmethod
@@ -107,6 +122,10 @@ class CampaignStore:
             raise KeyError(record_id)
         return row_to_record(row)
 
+    def all_records(self) -> list[Record]:
+        rows = self.conn.execute("SELECT * FROM records ORDER BY kind, id")
+        return [row_to_record(r) for r in rows]
+
     def links(self, record_id: str) -> list[tuple[str, str, str]]:
         rows = self.conn.execute(
             "SELECT from_id, to_id, kind FROM links WHERE from_id = ? OR to_id = ? ORDER BY rowid",
@@ -150,7 +169,24 @@ class CampaignStore:
                     now.isoformat(),
                 ),
             )
+            if old is not None:
+                self._refresh_facts(stored.id)
         return stored
+
+    def _refresh_facts(self, record_id: str) -> None:
+        """Видимость факта следует за целями «about», правило то же, что в add_fact."""
+        fact_ids = self.conn.execute(
+            "SELECT from_id FROM links WHERE to_id = ? AND kind = 'about'", (record_id,)
+        ).fetchall()
+        for (fact_id,) in fact_ids:
+            target_ids = self.conn.execute(
+                "SELECT to_id FROM links WHERE from_id = ? AND kind = 'about'", (fact_id,)
+            ).fetchall()
+            visibility, player_id = _fact_visibility([self.get(t) for (t,) in target_ids])
+            self.conn.execute(
+                "UPDATE records SET visibility = ?, player_id = ? WHERE id = ?",
+                (visibility, player_id, fact_id),
+            )
 
     def _check_visibility_change(self, record: Record) -> None:
         if record.visibility is Visibility.DM:
@@ -187,13 +223,7 @@ class CampaignStore:
     ) -> Record:
         with self.transaction():
             targets = [self.get(i) for i in links]
-            players = {t.player_id for t in targets if t.visibility is Visibility.PLAYER}
-            if any(t.visibility is Visibility.DM for t in targets) or len(players) > 1:
-                visibility, player_id = Visibility.DM, None
-            elif players:
-                visibility, player_id = Visibility.PLAYER, players.pop()
-            else:
-                visibility, player_id = Visibility.ALL, None
+            visibility, player_id = _fact_visibility(targets)
             fact = self._put(
                 Record(
                     kind=FACT_KIND,
