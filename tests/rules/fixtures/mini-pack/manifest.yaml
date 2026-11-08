@@ -1,0 +1,20 @@
+id: mini
+version: 0.1.0
+title: Мини-набор
+license: CC-BY-4.0
+attribution: Тестовый набор
+rounding: down
+files:
+  conditions:
+    path: conditions.yaml
+    sha256: e815d6442ab4f1bb22ead7a20577096fbdefbccd313e46c068497bf841cf26d0
+  tables:
+    path: tables.yaml
+    sha256: e69763a52b00a46fb9f096746054ec62575f8fff5df398ae275af3a4a01920da
+options:
+  crits:
+    allowed: [standard, max_dice]
+    default: standard
+  flanking:
+    allowed: ["off", "on"]
+    default: "off"
