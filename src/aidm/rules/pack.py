@@ -65,14 +65,14 @@ def _reject_floats(node: Any, where: str) -> None:
 
 
 def load_pack(path: Path) -> RulePack:
-    raw = (path / "manifest.yaml").read_bytes()
+    raw = path.joinpath("manifest.yaml").read_bytes()
     try:
         manifest = Manifest.model_validate(yaml.safe_load(raw))
     except (ValidationError, yaml.YAMLError) as e:
         raise PackError(f"bad manifest in {path}: {e}") from e
     data: dict[str, Any] = {}
     for name, ref in manifest.files.items():
-        f = path / ref.path
+        f = path.joinpath(ref.path)
         if not f.is_file():
             raise PackError(f"missing file {ref.path}")
         body = f.read_bytes()

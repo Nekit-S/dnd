@@ -13,10 +13,6 @@ def rules_float_math(source: str) -> list[str]:
         if isinstance(node, ast.Constant) and isinstance(node.value, float):
             bad.append(f"line {node.lineno}: float literal")
         elif isinstance(node, ast.BinOp | ast.AugAssign) and isinstance(node.op, ast.Div):
-            left = node.left if isinstance(node, ast.BinOp) else node.target
-            # shortcut: `/` слева от имени `*path*`/`*dir*` считается склейкой Path, не арифметикой
-            if isinstance(left, ast.Name) and ("path" in left.id or "dir" in left.id):
-                continue
             bad.append(f"line {node.lineno}: true division")
     return bad
 

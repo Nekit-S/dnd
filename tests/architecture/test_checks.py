@@ -11,7 +11,7 @@ from checks import (
 def test_rules_float_math() -> None:
     assert rules_float_math("x = 1.5") == ["line 1: float literal"]
     assert rules_float_math("x = a / b") == ["line 1: true division"]
-    assert rules_float_math("f = path / 'x'") == []
+    assert rules_float_math("f = path / 'x'") == ["line 1: true division"]
     assert rules_float_math("x /= 2") == ["line 1: true division"]
     assert rules_float_math("x = a // b + Fraction(1, 2)") == []
 
