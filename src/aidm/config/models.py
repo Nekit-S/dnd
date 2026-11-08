@@ -1,6 +1,6 @@
 import re
 from pathlib import Path
-from typing import Any
+from typing import Any, Literal
 
 import yaml
 from pydantic import BaseModel, ConfigDict
@@ -14,8 +14,8 @@ class UnknownCategoryError(LookupError):
 
 class CacheTtl(BaseModel):
     model_config = ConfigDict(extra="forbid")
-    direct: str
-    batch: str
+    direct: Literal["5m", "1h"]
+    batch: Literal["5m", "1h"]
 
 
 class Defaults(BaseModel):

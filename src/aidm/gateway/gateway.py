@@ -28,10 +28,9 @@ from aidm.providers.base import (
     ProviderRequest,
     ProviderResponse,
 )
-from aidm.providers.capabilities import Capability, get_capability
+from aidm.providers.capabilities import Capability, UnknownModelError, get_capability
 
 _log = logging.getLogger(__name__)
-_TTLS: dict[str, CacheTtl] = {"5m": "5m", "1h": "1h"}
 
 Limit = Literal["campaign", "monthly", "test"]
 ResultStatus = Literal["ok", "invalid_output", "truncated"]
@@ -125,7 +124,12 @@ class Gateway:
         except UnknownCategoryError:
             self._reject(req, "rejected_category", None)
             raise
-        capability = get_capability(cfg.model)
+        try:
+            capability = get_capability(cfg.model)
+        except UnknownModelError:
+            # Отдельного статуса нет: модель вне таблицы возможностей считаем моделью без цены
+            self._reject(req, "rejected_price", cfg)
+            raise
         provider = self._providers(cfg.provider)
         try:
             price_as_of = None if provider.is_local else self._prices.as_of(cfg.model)
@@ -196,7 +200,7 @@ class Gateway:
         ):
             return None
         # shortcut: только режим direct, ветка batch появится на этапе 1а
-        return _TTLS[(cfg.cache_ttl or self._models.defaults.cache_ttl).direct]
+        return (cfg.cache_ttl or self._models.defaults.cache_ttl).direct
 
     def _input_tokens(self, provider: Provider, preq: ProviderRequest, cap: int) -> int:
         estimate = estimate_tokens(*preq.system_prefix, *(m.content for m in preq.messages))
@@ -249,7 +253,18 @@ class Gateway:
                 self._sleep(defaults.backoff_base_ms * 2**retry)
                 retry += 1
                 continue
-            return self._finish(req, cfg, provider, row, response)
+            except BaseException:
+                self._fail_row(row)
+                raise
+            try:
+                return self._finish(req, cfg, provider, row, response)
+            except BaseException:
+                self._fail_row(row)
+                raise
+
+    def _fail_row(self, row: int) -> None:
+        # Строка не должна остаться pending: иначе её стоимость пропадёт из лимитов
+        self._ledger.finish_attempt(row, TokenCounts(), Decimal(0), "provider_error", "fatal")
 
     def _finish(
         self,

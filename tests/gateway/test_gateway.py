@@ -19,6 +19,7 @@ from aidm.gateway.gateway import (
 from aidm.ledger.ledger import Ledger, LedgerRow
 from aidm.ledger.prices import Prices, TokenCounts, UnknownPriceError, load_prices
 from aidm.providers.base import Message, ProviderError, ProviderRequest
+from aidm.providers.capabilities import UnknownModelError
 from aidm.providers.fake import Failure, FakeProvider
 
 PRICES = """\
@@ -344,3 +345,23 @@ def test_logs_have_no_prompt_or_reply(env: Env, caplog: pytest.LogCaptureFixture
         env.call("PROMPT-CANARY")
     assert "dev/smoke" in caplog.text
     assert "CANARY" not in caplog.text
+
+
+def test_unexpected_error_closes_ledger_row(env: Env) -> None:
+    def boom(request: ProviderRequest) -> Any:
+        raise RuntimeError("adapter bug")
+
+    env.fake.complete = boom  # type: ignore[method-assign]
+    with pytest.raises(RuntimeError):
+        env.call()
+    (row,) = env.rows()
+    assert (row.status, row.error_class) == ("provider_error", "fatal")
+
+
+def test_unknown_model_rejected_with_row(env: Env) -> None:
+    env.models.categories["dev/smoke"].model = "no-such-model"
+    with pytest.raises(UnknownModelError):
+        env.call()
+    (row,) = env.rows()
+    assert row.status == "rejected_price"
+    assert env.fake.calls == []
