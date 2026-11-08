@@ -61,3 +61,69 @@ files = ["src"]
 testpaths = ["tests"]
 addopts = '-m "not live"'
 markers = ["live: spends money, run only on request"]
+
+[tool.importlinter]
+root_package = "aidm"
+
+[[tool.importlinter.contracts]]
+name = "config imports only its allowed modules"
+type = "forbidden"
+source_modules = ["aidm.config"]
+forbidden_modules = ["aidm.providers", "aidm.store", "aidm.rules", "aidm.ledger", "aidm.gateway", "aidm.validation", "aidm.generation", "aidm.web"]
+allow_indirect_imports = true
+
+[[tool.importlinter.contracts]]
+name = "providers imports only its allowed modules"
+type = "forbidden"
+source_modules = ["aidm.providers"]
+forbidden_modules = ["aidm.store", "aidm.rules", "aidm.ledger", "aidm.gateway", "aidm.validation", "aidm.generation", "aidm.web"]
+allow_indirect_imports = true
+
+[[tool.importlinter.contracts]]
+name = "store imports only its allowed modules"
+type = "forbidden"
+source_modules = ["aidm.store"]
+forbidden_modules = ["aidm.providers", "aidm.rules", "aidm.ledger", "aidm.gateway", "aidm.validation", "aidm.generation", "aidm.web"]
+allow_indirect_imports = true
+
+[[tool.importlinter.contracts]]
+name = "rules imports only its allowed modules"
+type = "forbidden"
+source_modules = ["aidm.rules"]
+forbidden_modules = ["aidm.providers", "aidm.store", "aidm.ledger", "aidm.gateway", "aidm.validation", "aidm.generation", "aidm.web"]
+allow_indirect_imports = true
+
+[[tool.importlinter.contracts]]
+name = "ledger imports only its allowed modules"
+type = "forbidden"
+source_modules = ["aidm.ledger"]
+forbidden_modules = ["aidm.providers", "aidm.store", "aidm.rules", "aidm.gateway", "aidm.validation", "aidm.generation", "aidm.web"]
+allow_indirect_imports = true
+
+[[tool.importlinter.contracts]]
+name = "gateway imports only its allowed modules"
+type = "forbidden"
+source_modules = ["aidm.gateway"]
+forbidden_modules = ["aidm.store", "aidm.rules", "aidm.validation", "aidm.generation", "aidm.web"]
+allow_indirect_imports = true
+
+[[tool.importlinter.contracts]]
+name = "validation imports only its allowed modules"
+type = "forbidden"
+source_modules = ["aidm.validation"]
+forbidden_modules = ["aidm.config", "aidm.providers", "aidm.ledger", "aidm.generation", "aidm.web"]
+allow_indirect_imports = true
+
+[[tool.importlinter.contracts]]
+name = "generation imports only its allowed modules"
+type = "forbidden"
+source_modules = ["aidm.generation"]
+forbidden_modules = ["aidm.providers", "aidm.ledger", "aidm.web"]
+allow_indirect_imports = true
+
+[[tool.importlinter.contracts]]
+name = "web imports only its allowed modules"
+type = "forbidden"
+source_modules = ["aidm.web"]
+forbidden_modules = ["aidm.providers", "aidm.gateway", "aidm.validation"]
+allow_indirect_imports = true
