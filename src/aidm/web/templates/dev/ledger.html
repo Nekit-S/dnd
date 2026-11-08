@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+{% block title %}Журнал запросов{% endblock %}
+{% block content %}
+<h1>Журнал запросов</h1>
+<h2>Расходы по областям</h2>
+<table>
+  <tr><th>Область</th><th>Сумма, $</th></tr>
+  {% for scope, cost in scopes.items() %}<tr><td>{{ scope }}</td><td>{{ cost }}</td></tr>{% endfor %}
+</table>
+<h2>Расходы по кампаниям</h2>
+<table>
+  <tr><th>Кампания</th><th>Сумма, $</th></tr>
+  {% for cid, cost in campaigns.items() %}<tr><td>{{ cid }}</td><td>{{ cost }}</td></tr>
+  {% else %}<tr><td colspan="2">Нет данных</td></tr>{% endfor %}
+</table>
+<h2>Расходы по категориям</h2>
+<table>
+  <tr><th>Категория</th><th>Попыток</th><th>Сумма, $</th></tr>
+  {% for path, (attempts, cost) in tree.items() %}
+  <tr><td>{{ path }}</td><td>{{ attempts }}</td><td>{{ cost }}</td></tr>
+  {% else %}<tr><td colspan="3">Нет данных</td></tr>{% endfor %}
+</table>
+<h2>Последние 200 попыток</h2>
+<div class="scroll">
+<table>
+  <tr><th>№</th><th>Время</th><th>Категория</th><th>Модель</th><th>Вид</th><th>Статус</th><th>Вход</th><th>Выход</th><th>$</th></tr>
+  {% for r in rows %}
+  <tr>
+    <td>{{ r.id }}{% if r.parent_id %} ← {{ r.parent_id }}{% endif %}</td>
+    <td>{{ r.created_at.strftime("%d.%m %H:%M:%S") }}</td>
+    <td>{{ r.category }}</td><td>{{ r.model }}</td><td>{{ r.attempt_kind }}</td>
+    <td>{{ r.status }}</td><td>{{ r.uncached_input }}</td><td>{{ r.output }}</td><td>{{ r.cost }}</td>
+  </tr>
+  {% else %}<tr><td colspan="9">Запросов ещё не было</td></tr>{% endfor %}
+</table>
+</div>
+{% endblock %}

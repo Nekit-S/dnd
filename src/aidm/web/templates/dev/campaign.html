@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+{% block title %}{{ info.title }}{% endblock %}
+{% block content %}
+<h1>{{ info.title }}</h1>
+<p>Видны все записи, включая скрытые от игроков.</p>
+{% for r, data in records %}
+<section class="card">
+  <h2>{{ r.kind }} <small>{{ r.id }}</small></h2>
+  <p>Видимость: {{ r.visibility.value }}{% if r.player_id %} ({{ r.player_id }}){% endif %}</p>
+  <pre>{{ data }}</pre>
+</section>
+{% else %}<p>Записей нет</p>{% endfor %}
+{% endblock %}

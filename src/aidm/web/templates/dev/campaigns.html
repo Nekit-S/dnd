@@ -1,0 +1,9 @@
+{% extends "base.html" %}
+{% block title %}Тестовые кампании{% endblock %}
+{% block content %}
+<h1>Тестовые кампании</h1>
+<ul>
+  {% for c in campaigns %}<li><a href="/dev/campaigns/{{ c.id }}">{{ c.title }}</a> ({{ c.status }})</li>
+  {% else %}<li>Тестовых кампаний нет</li>{% endfor %}
+</ul>
+{% endblock %}
