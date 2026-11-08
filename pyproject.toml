@@ -1,0 +1,63 @@
+[project]
+name = "aidm"
+version = "0.1.0"
+description = "AI game master table for in-person D&D"
+authors = [
+    { name = "Nikita Safronov", email = "safronov.u.nik@gmail.com" }
+]
+requires-python = ">=3.12"
+dependencies = [
+    "anthropic>=2.6.0",
+    "fastapi>=0.162.2",
+    "jinja2>=3.1.6",
+    "ollama>=0.6.3",
+    "openai>=3.46.0",
+    "pydantic>=2.14.3",
+    "pydantic-settings>=2.16.2",
+    "pyyaml>=6.0.3",
+    "uvicorn>=0.54.0",
+]
+
+[project.scripts]
+aidm = "aidm.__main__:main"
+
+[build-system]
+requires = ["uv_build>=0.13.7,<0.14.0"]
+build-backend = "uv_build"
+
+[dependency-groups]
+dev = [
+    "httpx>=0.28.1",
+    "hypothesis>=6.170.15",
+    "import-linter>=2.16",
+    "mypy>=2.4.1",
+    "pre-commit>=4.7.0",
+    "pytest>=9.2.0",
+    "ruff>=0.17.4",
+    "types-pyyaml>=6.0.12.20261103",
+]
+
+[tool.ruff]
+target-version = "py312"
+line-length = 100
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "B", "UP", "T20", "BLE", "TID"]
+
+[tool.ruff.lint.flake8-tidy-imports.banned-api]
+"anthropic".msg = "only in aidm.providers"
+"openai".msg = "only in aidm.providers"
+"ollama".msg = "only in aidm.providers"
+
+[tool.ruff.lint.per-file-ignores]
+"src/aidm/providers/**" = ["TID251"]
+
+[tool.mypy]
+strict = true
+plugins = ["pydantic.mypy"]
+files = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = '-m "not live"'
+markers = ["live: spends money, run only on request"]
