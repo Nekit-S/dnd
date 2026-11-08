@@ -1,5 +1,4 @@
 import json
-import time
 from typing import Any
 
 import anthropic
@@ -50,7 +49,6 @@ class AnthropicProvider:
         return params
 
     def complete(self, request: ProviderRequest) -> ProviderResponse:
-        start = time.monotonic_ns()
         try:
             # shortcut: без stream SDK не пускает max_tokens > ~21k; для больших нужен stream
             msg = self.client.messages.create(
@@ -78,8 +76,7 @@ class AnthropicProvider:
             cache_read=u.cache_read_input_tokens or 0,
             output=u.output_tokens,
         )
-        latency_ms = (time.monotonic_ns() - start) // 1_000_000
-        return ProviderResponse(text, parsed, stop, usage, latency_ms)
+        return ProviderResponse(text, parsed, stop, usage)
 
     def count_tokens(self, request: ProviderRequest) -> int | None:
         try:

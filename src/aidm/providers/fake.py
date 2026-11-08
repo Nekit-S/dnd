@@ -55,7 +55,7 @@ class FakeProvider:
             parsed = json.loads(text) if failure != "truncated" else None
         usage = ProviderUsage(uncached_input=self._input_tokens(request), output=_tokens(text))
         stop: StopReason = "max_tokens" if failure == "truncated" else "end"
-        return ProviderResponse(text, parsed, stop, usage, latency_ms=0)
+        return ProviderResponse(text, parsed, stop, usage)
 
 
 def build(settings: object) -> FakeProvider:

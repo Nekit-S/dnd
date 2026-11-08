@@ -42,7 +42,6 @@ class ProviderResponse:
     parsed_json: Any | None
     stop_reason: StopReason
     usage: ProviderUsage
-    latency_ms: int
 
 
 class ProviderError(Exception):

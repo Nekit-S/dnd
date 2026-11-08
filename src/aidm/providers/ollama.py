@@ -1,5 +1,4 @@
 import json
-import time
 from typing import Any
 
 import httpx
@@ -47,7 +46,6 @@ class OllamaProvider:
         cap = CAPABILITIES.get(request.model)
         if cap is not None:
             options["num_ctx"] = cap.context_tokens
-        started = time.monotonic()
         try:
             resp = self.client.chat(
                 model=request.model,
@@ -57,7 +55,6 @@ class OllamaProvider:
             )
         except (ollama.ResponseError, ConnectionError, httpx.TransportError) as exc:
             raise _classify(exc) from None
-        latency_ms = int((time.monotonic() - started) * 1000)
 
         text = resp.message.content or ""
         parsed = None
@@ -70,7 +67,7 @@ class OllamaProvider:
         usage = ProviderUsage(
             uncached_input=resp.prompt_eval_count or 0, output=resp.eval_count or 0
         )
-        return ProviderResponse(text, parsed, stop, usage, latency_ms)
+        return ProviderResponse(text, parsed, stop, usage)
 
 
 def build(settings: Settings) -> OllamaProvider:

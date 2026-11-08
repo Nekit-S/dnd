@@ -1,5 +1,4 @@
 import json
-import time
 from typing import Any
 
 import openai
@@ -53,7 +52,6 @@ class OpenAIProvider:
                 "type": "json_schema",
                 "json_schema": {"name": "result", "schema": request.json_schema, "strict": True},
             }
-        started = time.monotonic()
         try:
             resp: ChatCompletion = self.client.chat.completions.create(
                 model=request.model,
@@ -63,7 +61,6 @@ class OpenAIProvider:
             )
         except openai.OpenAIError as exc:
             raise _classify(exc) from None
-        latency_ms = int((time.monotonic() - started) * 1000)
 
         choice = resp.choices[0]
         text = choice.message.content or ""
@@ -82,7 +79,7 @@ class OpenAIProvider:
                 cache_read=cached,
                 output=resp.usage.completion_tokens,
             )
-        return ProviderResponse(text, parsed, stop, usage, latency_ms)
+        return ProviderResponse(text, parsed, stop, usage)
 
 
 def build(settings: Settings) -> OpenAIProvider:
