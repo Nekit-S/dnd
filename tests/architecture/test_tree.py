@@ -67,3 +67,8 @@ def test_campaigns_dir_only_in_store() -> None:
 def test_web_reads_store_only_through_player_view() -> None:
     others = [p for p in py("web") if p.name != "dev.py"]
     assert violations(others, web_store_imports) == []
+
+
+def test_no_raw_store_connection_outside_store() -> None:
+    others = [p for p in SRC.rglob("*.py") if p.parent.name != "store"]
+    assert violations(others, lambda s: attr_uses(s, "conn")) == []

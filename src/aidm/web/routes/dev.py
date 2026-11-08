@@ -7,7 +7,7 @@ from fastapi.templating import Jinja2Templates
 
 from aidm.config.settings import Settings
 from aidm.ledger.ledger import Ledger
-from aidm.store.campaign import CampaignStore, row_to_record
+from aidm.store.campaign import CampaignStore
 from aidm.web.access import host_only
 
 router = APIRouter(prefix="/dev", dependencies=[Depends(host_only)])
@@ -63,8 +63,6 @@ def campaign_page(request: Request, campaign_id: str) -> HTMLResponse:
     if not info.is_test:
         raise HTTPException(status_code=403, detail="Эта кампания не тестовая")
     with CampaignStore.open(settings, campaign_id) as store:
-        records = [
-            row_to_record(r) for r in store.conn.execute("SELECT * FROM records ORDER BY kind, id")
-        ]
+        records = store.all_records()
     shown = [(r, json.dumps(r.data, ensure_ascii=False, indent=2)) for r in records]
     return _render(request, "dev/campaign.html", info=info, records=shown)
