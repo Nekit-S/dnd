@@ -1,0 +1,13 @@
+repos:
+  - repo: local
+    hooks:
+      - {id: ruff-check, name: ruff check, entry: uv run ruff check, language: system, types: [python]}
+      - {id: ruff-format, name: ruff format, entry: uv run ruff format --check, language: system, types: [python]}
+      - {id: mypy, name: mypy, entry: uv run mypy src, language: system, pass_filenames: false, types: [python]}
+      - {id: lint-imports, name: import-linter, entry: uv run lint-imports, language: system, pass_filenames: false, types: [python]}
+      - {id: pytest, name: pytest, entry: uv run pytest -q, language: system, pass_filenames: false, types: [python]}
+      - id: no-api-keys
+        name: no API keys
+        entry: 'sk-ant-|sk-[A-Za-z0-9_-]{20,}'
+        language: pygrep
+        exclude: ^\.pre-commit-config\.yaml$
