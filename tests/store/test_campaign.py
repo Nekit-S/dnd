@@ -156,3 +156,9 @@ def test_put_rejects_facts(store: CampaignStore) -> None:
     f = store.add_fact("x", [store.put(rec(Visibility.ALL)).id], FactSource.GENERATION, None)
     with pytest.raises(ValueError):
         store.put(store.get(f.id).model_copy(update={"visibility": Visibility.ALL}))
+
+
+@pytest.mark.parametrize("bad", ["../x", "abc", "", "A" * 32])
+def test_bad_campaign_id_rejected(settings: Settings, bad: str) -> None:
+    with pytest.raises(ValueError):
+        CampaignStore.open(settings, bad)
